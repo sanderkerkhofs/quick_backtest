@@ -32,5 +32,5 @@ Here are some features coming soon to FreqHub:
 - [ ] Enhanced user interface for even easier strategy adjustments.
 
 ---
-
+ 
 If you're new to trading or backtesting, don't worry FreqHub is designed to be intuitive and user-friendly. Stay tuned for more updates and exciting new features!
