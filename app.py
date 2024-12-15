@@ -39,25 +39,19 @@ def process_single():
     data_string = f"{exchange}-{asset}-{strategy_name}-{timeframe}-{time_period}"
     data_hash = hashlib.md5(data_string.encode()).hexdigest()
 
-    # Check if the hash already exists in the database
+    # Save the data to the database using INSERT OR IGNORE
     with Session(engine) as session:
-        existing_trade = session.query(TradeData).filter(TradeData.hash == data_hash).first()
-        if existing_trade:
-            return jsonify({"error": "Duplicate entry. This hash already exists."}), 400
-
-        # Create an instance of the TradeData model
-        trade_data = TradeData(
-            uuid=unique_id,
-            hash=data_hash,
-            exchange=exchange,
-            asset=asset,
-            strategy_name=strategy_name,
-            timeframe=timeframe,
-            time_period=time_period
+        session.execute(
+            TradeData.__table__.insert().values(
+                uuid=unique_id,
+                hash=data_hash,
+                exchange=exchange,
+                asset=asset,
+                strategy_name=strategy_name,
+                timeframe=timeframe,
+                time_period=time_period
+            ).prefix_with('OR IGNORE')
         )
-
-        # Save the data to the database
-        session.add(trade_data)
         session.commit()
 
     data = {
