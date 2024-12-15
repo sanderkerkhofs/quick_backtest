@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Freqtrade Backtesting</title>
+
+  <!-- Bootstrap Bundle with Popper.js -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" />
+  <style>
+    body { font-family: Arial, sans-serif; }
+    .container { max-width: 600px; margin: auto; }
+    .form-label { font-weight: bold; }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+      <a class="navbar-brand" href="#">Freqtrade Backtesting</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Backtest
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item" href="#">Single-Asset</a></li>
+              <li><a class="dropdown-item" href="#">Multi-Asset</a></li>
+              <li><a class="dropdown-item" href="#">Bulk</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mt-5">
+    <h2>Single Asset</h2>
+    <p>
+      Backtest one cryptocurrency against the selected strategy.
+    </p>
+    <div class="card rounded">
+      <div class="card-body">
+        <form class="mt-4" action="/process/single" method="post">
+
+          <!-- Exchange -->
+          <div class="mb-3">
+            <label for="exchange" class="form-label">Exchange</label>
+            <select class="form-select" id="exchange" name="exchange" required aria-describedby="exchangeHelp">
+              <option value="binance" selected>Binance</option>
+              <option value="coinbase" disabled>Coinbase</option>
+              <option value="kraken" disabled>Kraken</option>
+            </select>
+            <div id="exchangeHelp" class="form-text">Select the exchange you want to use for backtesting.</div>
+          </div>
+
+          <!-- Asset -->
+          <div class="mb-3">
+            <label for="asset" class="form-label">Asset</label>
+            <select class="form-select" id="asset" name="asset" required aria-describedby="assetHelp">
+              <!-- <option value="" disabled selected>Select an asset</option> -->
+              <option value="BTC/USDT" selected>BTC/USDT</option>
+              <option value="ETH/USDT">ETH/USDT</option>
+              <option value="BNB/USDT">BNB/USDT</option>
+              <option value="ADA/USDT">ADA/USDT</option>
+              <option value="SOL/USDT">SOL/USDT</option>
+              <option value="XRP/USDT">XRP/USDT</option>
+              <option value="DOT/USDT">DOT/USDT</option>
+              <option value="DOGE/USDT">DOGE/USDT</option>
+              <option value="LTC/USDT">LTC/USDT</option>
+              <option value="LINK/USDT">LINK/USDT</option>
+              <option value="BCH/USDT">BCH/USDT</option>
+              <option value="UNI/USDT">UNI/USDT</option>
+              <option value="XLM/USDT">XLM/USDT</option>
+              <option value="TRX/USDT">TRX/USDT</option>
+              <option value="AVAX/USDT">AVAX/USDT</option>
+              <option value="ATOM/USDT">ATOM/USDT</option>
+              <option value="FIL/USDT">FIL/USDT</option>
+              <option value="VET/USDT">VET/USDT</option>
+              <option value="ETC/USDT">ETC/USDT</option>
+              <option value="ICP/USDT">ICP/USDT</option>
+              <option value="MATIC/USDT">MATIC/USDT</option>
+              <option value="NEAR/USDT">NEAR/USDT</option>
+              <option value="THETA/USDT">THETA/USDT</option>
+              <option value="AAVE/USDT">AAVE/USDT</option>
+              <option value="EOS/USDT">EOS/USDT</option>
+              <option value="XTZ/USDT">XTZ/USDT</option>
+              <option value="CAKE/USDT">CAKE/USDT</option>
+              <option value="FTT/USDT">FTT/USDT</option>
+              <option value="ALGO/USDT">ALGO/USDT</option>
+              <option value="MANA/USDT">MANA/USDT</option>
+            </select>
+            <div id="assetHelp" class="form-text">Select the asset you want to backtest.</div>
+          </div>
+
+          <!-- Strategy Name -->
+          <div class="mb-3">
+            <label for="strategy_name" class="form-label">Strategy Name</label>
+            <select class="form-select" id="strategy_name" name="strategy_name" required aria-describedby="strategyNameHelp">
+              <!-- <option value="" disabled selected>Select a strategy</option> -->
+              <option value="RSI" selected>RSI</option>
+              <option value="SMAOffset">SMAOffset</option>
+              <option value="Obelisk_Ichimoku_ZEMA_v1">Obelisk_Ichimoku_ZEMA_v1</option>
+            </select>
+            <div id="strategyNameHelp" class="form-text">Select the strategy you want to use for backtesting.</div>
+          </div>
+
+          <!-- Timeframe -->
+          <div class="mb-3">
+            <label for="timeframe" class="form-label">Timeframe</label>
+            <select class="form-select" id="timeframe" name="timeframe" required aria-describedby="timeframeHelp">
+              <option value="strategy_default" selected>
+                Strategy default
+              </option>
+              <option value="1m">1m (1 minute)</option>
+              <option value="5m">5m (5 minutes)</option>
+              <option value="15m">15m (15 minutes)</option>
+              <option value="30m">30m (30 minutes)</option>
+              <option value="1h">1h (1 hour)</option>
+              <option value="2h">2h (2 hours)</option>
+              <option value="4h">4h (4 hours)</option>
+              <option value="6h">6h (6 hours)</option>
+              <option value="8h">8h (8 hours)</option>
+              <option value="12h">12h (12 hours)</option>
+              <option value="1d">1d (1 day)</option>
+              <option value="3d">3d (3 days)</option>
+              <option value="1w">1w (1 week)</option>
+              <option value="2w">2w (2 weeks)</option>
+              <option value="1M">1M (1 month)</option>
+            </select>
+            <div id="timeframeHelp" class="form-text">Select the timeframe for backtesting.</div>
+          </div>
+
+          <!-- Backtest Period -->
+          <div class="mb-3">
+            <label for="time_period" class="form-label">Backtest Period</label>
+            <select class="form-select" id="time_period" name="time_period" required aria-describedby="timePeriodHelp">
+              <option value="20240801-20241110" selected>
+                2024 Election Period
+              </option>
+              <option value="20240101-20241031">
+                2024 YTD (Bitcoin Halving Year)
+              </option>
+              <option value="20230701-20231001">
+                2023 H2 (Crypto Market Stabilization)
+              </option>
+              <option value="20230101-20230630">
+                2023 H1 (Regulatory Crackdown)
+              </option>
+              <option value="20221101-20230301">
+                2022-2023 (FTX Collapse Period)
+              </option>
+              <option value="20220601-20221231">
+                2022 H2 (Crypto Bear Market)
+              </option>
+              <option value="20210101-20211231">2021 (Crypto Bull Market)</option>
+              <option value="20200101-20201231">
+                2020 (COVID-19 Crash and Recovery)
+              </option>
+              <option value="20171201-20180131">
+                2017-2018 (Bitcoin ATH and Crash)
+              </option>
+              <option value="20150101-20160101">
+                2015 (Post-Mt. Gox Recovery)
+              </option>
+              <option value="20130101-20131231">
+                2013 (Bitcoin Early Adoption)
+              </option>
+            </select>
+            <div id="timePeriodHelp" class="form-text">Choose the period for which you want to backtest.</div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary">Run Backtest</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
