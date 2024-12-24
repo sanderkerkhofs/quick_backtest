@@ -12,6 +12,7 @@ LOCAL_CONFIG_DIR = "/home/ubuntu/_CONFIGS/"
 REMOTE_CONFIG_DIR = "/freqtrade/user_data/config/"
 LOCAL_RESULTS_DIR = "/home/ubuntu/_BACKTEST_RESULTS/"
 REMOTE_RESULTS_DIR = "/freqtrade/user_data/backtest_results/"
+
 DOCKER_IMAGE_NAME = "sanderke123/freqtrade2"
 CONFIG_FILE = "config_backtest.json"
 
