@@ -4,13 +4,13 @@ import json
 import os
 
 # Define file paths for configuration and data directories
-LOCAL_DATA_DIR = "/home/ubuntu/_DATA/"
+LOCAL_DATA_DIR = "C:\\_DATA\\"
 REMOTE_DATA_DIR = "/freqtrade/user_data/data/"
-LOCAL_STRATEGY_DIR = "/home/ubuntu/_STRATEGIES/TESTED/"
+LOCAL_STRATEGY_DIR = "C:\\_STRATEGIES\\TESTED\\"
 REMOTE_STRATEGY_DIR = "/freqtrade/user_data/strategies/"
-LOCAL_CONFIG_DIR = "/home/ubuntu/_CONFIGS/"
+LOCAL_CONFIG_DIR = "C:\\_CONFIGS\\"
 REMOTE_CONFIG_DIR = "/freqtrade/user_data/config/"
-LOCAL_RESULTS_DIR = "/home/ubuntu/_BACKTEST_RESULTS/"
+LOCAL_RESULTS_DIR = "C:\\_BACKTEST_RESULTS\\"
 REMOTE_RESULTS_DIR = "/freqtrade/user_data/backtest_results/"
 
 DOCKER_IMAGE_NAME = "sanderke123/freqtrade2"
@@ -34,6 +34,14 @@ def check_strategy_timeframe(strategy_file):
             return ticker_interval_match.group(2)
 
     raise ValueError(f"No valid timeframe or ticker_interval found in {strategy_file}")
+
+def list_strategy_folder(folder):
+    """Read all Python files in a folder and return a list of file names."""
+    files = []
+    for file in os.listdir(folder):
+        if file.endswith(".py"):
+            files.append(os.path.splitext(file)[0])
+    return files
 
 def download_data(pair_list, exchange, data_format, timerange, strategy_name):
     """Download market data using Freqtrade."""

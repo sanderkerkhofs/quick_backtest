@@ -2,17 +2,18 @@ from flask import Flask, render_template, request, jsonify
 from sqlmodel import SQLModel, Field, create_engine, Session
 import uuid
 import hashlib
-from module import check_strategy_timeframe
+from module import check_strategy_timeframe, list_strategy_folder
+from config import *
 
-# Define file paths for configuration and data directories
-LOCAL_DATA_DIR = "/home/ubuntu/_DATA/"
-REMOTE_DATA_DIR = "/freqtrade/user_data/data/"
-LOCAL_STRATEGY_DIR = "C:\\_STRATEGIES\\TESTED\\"
-REMOTE_STRATEGY_DIR = "/freqtrade/user_data/strategies/"
-LOCAL_CONFIG_DIR = "/home/ubuntu/_CONFIGS/"
-REMOTE_CONFIG_DIR = "/freqtrade/user_data/config/"
-LOCAL_RESULTS_DIR = "/home/ubuntu/_BACKTEST_RESULTS/"
-REMOTE_RESULTS_DIR = "/freqtrade/user_data/backtest_results/"
+# # Define file paths for configuration and data directories
+# LOCAL_DATA_DIR = "/home/ubuntu/_DATA/"
+# REMOTE_DATA_DIR = "/freqtrade/user_data/data/"
+# LOCAL_STRATEGY_DIR = "C:\\_STRATEGIES\\TESTED\\"
+# REMOTE_STRATEGY_DIR = "/freqtrade/user_data/strategies/"
+# LOCAL_CONFIG_DIR = "/home/ubuntu/_CONFIGS/"
+# REMOTE_CONFIG_DIR = "/freqtrade/user_data/config/"
+# LOCAL_RESULTS_DIR = "/home/ubuntu/_BACKTEST_RESULTS/"
+# REMOTE_RESULTS_DIR = "/freqtrade/user_data/backtest_results/"
 
 # Define the model
 class TradeData(SQLModel, table=True):
@@ -50,7 +51,10 @@ def home():
     """
     Render the single asset template
     """
-    return render_template('single_asset.html')
+
+    strategy_list = list_strategy_folder(LOCAL_STRATEGY_DIR)
+
+    return render_template('single_asset.html', strategy_list=strategy_list, trading_pairs=TRADING_PAIRS)
 
 @app.route('/process/single', methods=['POST'])
 def process_single():

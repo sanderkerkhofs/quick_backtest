@@ -67,37 +67,10 @@
           <div class="mb-3">
             <label for="asset" class="form-label">Asset</label>
             <select class="form-select" id="asset" name="asset" required aria-describedby="assetHelp">
-              <!-- <option value="" disabled selected>Select an asset</option> -->
-              <option value="BTC/USDT" selected>BTC/USDT</option>
-              <option value="ETH/USDT">ETH/USDT</option>
-              <option value="BNB/USDT">BNB/USDT</option>
-              <option value="ADA/USDT">ADA/USDT</option>
-              <option value="SOL/USDT">SOL/USDT</option>
-              <option value="XRP/USDT">XRP/USDT</option>
-              <option value="DOT/USDT">DOT/USDT</option>
-              <option value="DOGE/USDT">DOGE/USDT</option>
-              <option value="LTC/USDT">LTC/USDT</option>
-              <option value="LINK/USDT">LINK/USDT</option>
-              <option value="BCH/USDT">BCH/USDT</option>
-              <option value="UNI/USDT">UNI/USDT</option>
-              <option value="XLM/USDT">XLM/USDT</option>
-              <option value="TRX/USDT">TRX/USDT</option>
-              <option value="AVAX/USDT">AVAX/USDT</option>
-              <option value="ATOM/USDT">ATOM/USDT</option>
-              <option value="FIL/USDT">FIL/USDT</option>
-              <option value="VET/USDT">VET/USDT</option>
-              <option value="ETC/USDT">ETC/USDT</option>
-              <option value="ICP/USDT">ICP/USDT</option>
-              <option value="MATIC/USDT">MATIC/USDT</option>
-              <option value="NEAR/USDT">NEAR/USDT</option>
-              <option value="THETA/USDT">THETA/USDT</option>
-              <option value="AAVE/USDT">AAVE/USDT</option>
-              <option value="EOS/USDT">EOS/USDT</option>
-              <option value="XTZ/USDT">XTZ/USDT</option>
-              <option value="CAKE/USDT">CAKE/USDT</option>
-              <option value="FTT/USDT">FTT/USDT</option>
-              <option value="ALGO/USDT">ALGO/USDT</option>
-              <option value="MANA/USDT">MANA/USDT</option>
+              <option value="" disabled selected>Select an asset</option>
+              {% for pair in trading_pairs %}
+              <option value="{{ pair }}" {% if loop.first %}selected{% endif %}>{{ pair }}</option>
+              {% endfor %}
             </select>
             <div id="assetHelp" class="form-text">Select the asset you want to backtest.</div>
           </div>
@@ -106,10 +79,10 @@
           <div class="mb-3">
             <label for="strategy_name" class="form-label">Strategy Name</label>
             <select class="form-select" id="strategy_name" name="strategy_name" required aria-describedby="strategyNameHelp">
-              <!-- <option value="" disabled selected>Select a strategy</option> -->
-              <option value="RSI" selected>RSI</option>
-              <option value="SMAOffset">SMAOffset</option>
-              <option value="Obelisk_Ichimoku_ZEMA_v1">Obelisk_Ichimoku_ZEMA_v1</option>
+              <option value="" disabled selected>Select a strategy</option>
+              {% for strategy in strategy_list %}
+              <option value="{{ strategy }}" {% if loop.first %}selected{% endif %}>{{ strategy }}</option>
+              {% endfor %}
             </select>
             <div id="strategyNameHelp" class="form-text">Select the strategy you want to use for backtesting.</div>
           </div>
