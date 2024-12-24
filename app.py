@@ -2,18 +2,8 @@ from flask import Flask, render_template, request, jsonify
 from sqlmodel import SQLModel, Field, create_engine, Session
 import uuid
 import hashlib
-from module import check_strategy_timeframe, list_strategy_folder
+from module import check_strategy_timeframe, list_strategy_folder, download_data, run_backtest
 from config import *
-
-# # Define file paths for configuration and data directories
-# LOCAL_DATA_DIR = "/home/ubuntu/_DATA/"
-# REMOTE_DATA_DIR = "/freqtrade/user_data/data/"
-# LOCAL_STRATEGY_DIR = "C:\\_STRATEGIES\\TESTED\\"
-# REMOTE_STRATEGY_DIR = "/freqtrade/user_data/strategies/"
-# LOCAL_CONFIG_DIR = "/home/ubuntu/_CONFIGS/"
-# REMOTE_CONFIG_DIR = "/freqtrade/user_data/config/"
-# LOCAL_RESULTS_DIR = "/home/ubuntu/_BACKTEST_RESULTS/"
-# REMOTE_RESULTS_DIR = "/freqtrade/user_data/backtest_results/"
 
 # Define the model
 class TradeData(SQLModel, table=True):
@@ -26,7 +16,7 @@ class TradeData(SQLModel, table=True):
     - asset: str
     - strategy_name: str
     - timeframe: str
-    - time_period: str
+    - timerange: str
     """
     id: int = Field(default=None, primary_key=True)
     uuid: str
@@ -35,7 +25,7 @@ class TradeData(SQLModel, table=True):
     asset: str
     strategy_name: str
     timeframe: str
-    time_period: str
+    timerange: str
 
 app = Flask(__name__)
 
@@ -66,17 +56,19 @@ def process_single():
     asset = request.form.get('asset')
     strategy_name = request.form.get('strategy_name')
     timeframe = request.form.get('timeframe')
-    time_period = request.form.get('time_period')
+    timerange = request.form.get('timerange')
 
     # Create a unique hash of the data string
-    data_string = f"{exchange}-{asset}-{strategy_name}-{timeframe}-{time_period}"
+    data_string = f"{exchange}-{asset}-{strategy_name}-{timeframe}-{timerange}"
     data_hash = hashlib.md5(data_string.encode()).hexdigest()
 
+    # Create a list of trading pairs (assuming asset is a single pair like "BTC/USDT")
+    pair_list = [asset]
     
     # Check if the timeframe is "strategy_default" and if so, 
     # call the check_strategy_timeframe function
     if timeframe == "strategy_default":
-        timeframe = check_strategy_timeframe(f"{LOCAL_STRATEGY_DIR}{strategy_name}.py")
+        timeframe = check_strategy_timeframe(f"{LOCAL_STRATEGY_DIR}{strategy_name}.py")    
 
     # Save the data to the database using INSERT OR IGNORE
     with Session(engine) as session:
@@ -89,7 +81,7 @@ def process_single():
                 asset=asset,
                 strategy_name=strategy_name,
                 timeframe=timeframe,
-                time_period=time_period
+                timerange=timerange
             ).prefix_with('OR IGNORE')
         )
         session.commit()
@@ -102,10 +94,28 @@ def process_single():
         'asset': asset,
         'strategy_name': strategy_name,
         'timeframe': timeframe,
-        'time_period': time_period
+        'timerange': timerange
     }
 
+    # Download market data
+    try:
+        download_logs = download_data(pair_list, exchange, data_format="json", timeframe=timeframe, timerange=timerange)
+    except RuntimeError as e:
+        return jsonify(error=f"Error during data download: {str(e)}"), 500
+
+    # Run backtest
+    try:
+        backtest_logs = run_backtest(pair_list, strategy_name, data_format="json", timerange=timerange, timeframe=timeframe, max_open_trades=3)
+    except RuntimeError as e:
+        return jsonify(error=f"Error during backtest: {str(e)}"), 500
+
+    # # Redirect to results
+    # return redirect(url_for("results"))
+
+    # Return the data as a JSON response
     return jsonify(data)
+
+  
 
 if __name__ == '__main__':
     app.run(debug=True)

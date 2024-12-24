@@ -1,20 +1,9 @@
+# import modules
 import docker
 import re
 import json
 import os
-
-# Define file paths for configuration and data directories
-LOCAL_DATA_DIR = "C:\\_DATA\\"
-REMOTE_DATA_DIR = "/freqtrade/user_data/data/"
-LOCAL_STRATEGY_DIR = "C:\\_STRATEGIES\\TESTED\\"
-REMOTE_STRATEGY_DIR = "/freqtrade/user_data/strategies/"
-LOCAL_CONFIG_DIR = "C:\\_CONFIGS\\"
-REMOTE_CONFIG_DIR = "/freqtrade/user_data/config/"
-LOCAL_RESULTS_DIR = "C:\\_BACKTEST_RESULTS\\"
-REMOTE_RESULTS_DIR = "/freqtrade/user_data/backtest_results/"
-
-DOCKER_IMAGE_NAME = "sanderke123/freqtrade2"
-CONFIG_FILE = "config_backtest.json"
+from config import *
 
 # Initialize Docker client
 client = docker.from_env()
@@ -43,9 +32,8 @@ def list_strategy_folder(folder):
             files.append(os.path.splitext(file)[0])
     return files
 
-def download_data(pair_list, exchange, data_format, timerange, strategy_name):
+def download_data(pair_list, exchange, data_format, timeframe, timerange):
     """Download market data using Freqtrade."""
-    timeframe = check_strategy_timeframe(f"{LOCAL_STRATEGY_DIR}{strategy_name}.py")
     pairs = ' '.join(pair_list)
 
     download_command = (
@@ -82,7 +70,7 @@ def download_data(pair_list, exchange, data_format, timerange, strategy_name):
     except docker.errors.DockerException as e:
         raise RuntimeError(f"Docker error: {e}")
 
-def run_backtest(pair_list, strategy_name, data_format, timerange, max_open_trades):
+def run_backtest(pair_list, strategy_name, data_format, timerange, timeframe, max_open_trades):
     """Run a backtest using Freqtrade."""
     pairs = ' '.join(pair_list)
 
@@ -93,6 +81,7 @@ def run_backtest(pair_list, strategy_name, data_format, timerange, max_open_trad
         f"--pairs {pairs} "
         f"--strategy {strategy_name} "
         f"--timerange={timerange} "
+        f"--timeframe {timeframe} "
         f"--max-open-trades {max_open_trades} "
     )
 
@@ -154,45 +143,3 @@ def read_latest_backtest(script_dir="/home/ubuntu/_BACKTEST_RESULTS"):
 
     return backtest_data
 
-# Examples
-if __name__ == "__main__":
-
-
-    # # Example: Download market data
-    # try:
-    #     print("Downloading data...")
-    #     download_logs = download_data(
-    #         pair_list=["BTC/USDT", "ETH/USDT"],
-    #         exchange="binance",
-    #         data_format="json",
-    #         timerange="20240101-20241101",
-    #         strategy_name="RSI"
-    #     )
-    #     print("Download logs:")
-    #     print(download_logs)
-    # except Exception as e:
-    #     print(f"Error: {e}")
-
-    # # Example: Run backtest
-    # try:
-    #     print("Running backtest...")
-    #     backtest_logs = run_backtest(
-    #         pair_list=["BTC/USDT", "ETH/USDT"],
-    #         strategy_name="RSI",
-    #         data_format="json",
-    #         timerange="20240101-20241101",
-    #         max_open_trades=3
-    #     )
-    #     print("Backtest logs:")
-    #     print(backtest_logs)
-    # except Exception as e:
-    #     print(f"Error: {e}")
-
-    # Example: Load backtest result
-    try:
-        print("Loading backtest result...")
-        backtest_result = read_latest_backtest()
-        print("Backtest result:")
-        print(backtest_result)
-    except Exception as e:
-        print(f"Error: {e}")
