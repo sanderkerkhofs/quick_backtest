@@ -8,21 +8,27 @@ from config import *
 # Initialize Docker client
 client = docker.from_env()
 
-def check_strategy_timeframe(strategy_file):
-    """Check a single strategy file for timeframe or ticker_interval."""
-    with open(strategy_file, 'r') as file:
-        content = file.read()
+# Helper function to check timeframe
+def check_timeframe(strategy_file, timeframe):
+    """Return provided timeframe or extract from strategy file."""
+    if timeframe != "strategy_default":
+        return timeframe
 
-        # Search for timeframe and ticker_interval using regex
-        timeframe_match = re.search(r'\btimeframe\s*=\s*([\'"]?)(.*?)\1', content)
-        ticker_interval_match = re.search(r'\bticker_interval\s*=\s*([\'"]?)(.*?)\1', content)
+    try:
+        with open(strategy_file, 'r') as file:
+            content = file.read()
 
-        if timeframe_match:
-            return timeframe_match.group(2)
-        if ticker_interval_match:
-            return ticker_interval_match.group(2)
+        # Search for timeframe or ticker_interval
+        match = re.search(r'\b(timeframe|ticker_interval)\s*=\s*[\'\"]?([\w\d]+)[\'\"]?', content)
+        if match:
+            return match.group(2)
 
-    raise ValueError(f"No valid timeframe or ticker_interval found in {strategy_file}")
+        raise ValueError(f"No valid timeframe or ticker_interval found in {strategy_file}")
+
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Strategy file not found: {strategy_file}")
+    except Exception as e:
+        raise RuntimeError(f"Error reading {strategy_file}: {str(e)}")
 
 def list_strategy_folder(folder):
     """Read all Python files in a folder and return a list of file names."""
@@ -110,15 +116,16 @@ def run_backtest(pair_list, strategy_name, data_format, timerange, timeframe, ma
     except docker.errors.DockerException as e:
         raise RuntimeError(f"Docker error: {e}")
     
-def read_latest_backtest(script_dir="/home/ubuntu/_BACKTEST_RESULTS"):
-    file_path = os.path.join(script_dir, ".last_result.json")
+def read_latest_backtest(results_dir, backtest_uuid=None, backtest_hash=None):
+    # Set default file path
+    file_path = os.path.join(results_dir, ".last_result.json")
 
     # Open last_result.json
     with open(file_path) as file:
         latest_backtest_filename = json.load(file)["latest_backtest"]
 
     # Read latest backtest
-    backtest_file_path = os.path.join(script_dir, latest_backtest_filename)
+    backtest_file_path = os.path.join(results_dir, latest_backtest_filename)
     if os.path.exists(backtest_file_path):
         with open(backtest_file_path) as backtest_file:
             backtest_json = json.load(backtest_file)
@@ -129,8 +136,10 @@ def read_latest_backtest(script_dir="/home/ubuntu/_BACKTEST_RESULTS"):
     # Extract Strategy Overview
     backtest_data = backtest_json['strategy'][backtest_strategy]
 
-    # Add strategy name
-    backtest_data['strategy_name'] = backtest_strategy
+    # Add backtest_strategy, backtest_uuid and backtest_hash
+    backtest_data['backtest_strategy'] = backtest_strategy
+    backtest_data['backtest_uuid'] = backtest_uuid
+    backtest_data['backtest_hash'] = backtest_hash
 
     # Remove unused keys
     keys_to_remove = [
@@ -141,5 +150,11 @@ def read_latest_backtest(script_dir="/home/ubuntu/_BACKTEST_RESULTS"):
     for key in keys_to_remove:
         backtest_data.pop(key, None)
 
-    return backtest_data
+    
+    # Filter out unsupported fields from backtest_data
+    filtered_dict = {}
+    for k, v in backtest_data.items():  # Ensure you're filtering backtest_data
+        if not isinstance(v, (list, dict)):
+            filtered_dict[k] = v
 
+    return backtest_data

@@ -2,35 +2,16 @@ from flask import Flask, render_template, request, jsonify
 from sqlmodel import SQLModel, Field, create_engine, Session
 import uuid
 import hashlib
-from module import check_strategy_timeframe, list_strategy_folder, download_data, run_backtest
+from module import check_timeframe, list_strategy_folder, download_data, run_backtest, read_latest_backtest
+from models import TradeData, BacktestData
 from config import *
+import plotly.express as px
+import plotly.io as pio
 
-# Define the model
-class TradeData(SQLModel, table=True):
-    """
-    Define the TradeData model with the following columns:
-    - id: int, primary key, auto-incrementing
-    - uuid: str, unique identifier
-    - hash: str, unique hash of the data string, with a unique constraint
-    - exchange: str
-    - asset: str
-    - strategy_name: str
-    - timeframe: str
-    - timerange: str
-    """
-    id: int = Field(default=None, primary_key=True)
-    uuid: str
-    hash: str = Field(unique=True)  # Add unique constraint
-    exchange: str
-    asset: str
-    strategy_name: str
-    timeframe: str
-    timerange: str
 
 app = Flask(__name__)
 
 # Database setup
-DATABASE_URL = "sqlite:///trade_data.db"
 engine = create_engine(DATABASE_URL)
 
 # Create the database tables
@@ -62,13 +43,11 @@ def process_single():
     data_string = f"{exchange}-{asset}-{strategy_name}-{timeframe}-{timerange}"
     data_hash = hashlib.md5(data_string.encode()).hexdigest()
 
+    # Check if the timeframe is "strategy_default" or regular timeframe like 5m etc
+    timeframe = check_timeframe(strategy_file=f"{LOCAL_STRATEGY_DIR}{strategy_name}.py", timeframe=timeframe)    
+
     # Create a list of trading pairs (assuming asset is a single pair like "BTC/USDT")
     pair_list = [asset]
-    
-    # Check if the timeframe is "strategy_default" and if so, 
-    # call the check_strategy_timeframe function
-    if timeframe == "strategy_default":
-        timeframe = check_strategy_timeframe(f"{LOCAL_STRATEGY_DIR}{strategy_name}.py")    
 
     # Save the data to the database using INSERT OR IGNORE
     with Session(engine) as session:
@@ -109,11 +88,31 @@ def process_single():
     except RuntimeError as e:
         return jsonify(error=f"Error during backtest: {str(e)}"), 500
 
-    # # Redirect to results
-    # return redirect(url_for("results"))
+    # Read latest backtest
+    backtest_data = read_latest_backtest(results_dir=LOCAL_RESULTS_DIR, backtest_uuid=unique_id, backtest_hash=data_hash)
+
+    # Create a BacktestData instance
+    backtest_instance = BacktestData(**backtest_data)
+
+    # Insert the data into the database
+    with Session(engine) as session:
+        session.add(backtest_instance)
+        session.commit()
 
     # Return the data as a JSON response
-    return jsonify(data)
+    return jsonify(backtest_data)
+
+@app.route('/plotly')
+def plotly():
+    # Create a Plotly figure
+    df = px.data.gapminder()  # Example data
+    fig = px.scatter(df, x='gdpPercap', y='lifeExp', color='continent', size='pop', hover_name='country', log_x=True, size_max=60)
+    
+    # Convert the Plotly figure to HTML
+    graph_html = pio.to_html(fig, full_html=False)
+    
+    # Render the graph in a template
+    return render_template('plotly_page.html', graph_html=graph_html)
 
   
 

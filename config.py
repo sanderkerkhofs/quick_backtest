@@ -1,3 +1,6 @@
+# Database URL
+DATABASE_URL = "sqlite:///trade_data.db"
+
 # Data Directories
 LOCAL_DATA_DIR = "C:\\_DATA\\"
 REMOTE_DATA_DIR = "/freqtrade/user_data/data/"
